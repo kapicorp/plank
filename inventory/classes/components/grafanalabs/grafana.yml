@@ -1,0 +1,27 @@
+parameters:
+  grafana:
+    name: grafana
+    chart:
+      version: 8.8.2
+      dir: system/sources/charts/grafanalabs/grafana/${grafana:chart:version}/
+    helm_values:
+      replicas: 2
+
+  kapitan:
+    dependencies:
+      # Download helm charts
+      - type: helm
+        output_path: ${grafana:chart:dir}
+        source: https://grafana.github.io/helm-charts
+        version: ${grafana:chart:version} 
+        chart_name: ${grafana:name}
+
+  # compiles chart using generators (new way)
+  charts:
+    grafana:
+      chart_dir: ${grafana:chart:dir}
+      helm_params:
+        namespace: ${grafana:name}
+        name: ${grafana:name}
+        output_file: ${grafana:name}.yml
+      helm_values: ${grafana:helm_values}

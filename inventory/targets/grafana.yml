@@ -1,0 +1,8 @@
+# inventory/targets/grafana.yml
+classes:
+  - common
+  # load inventory/classes/components/grafanalabs/grafana.yml
+  - components.grafanalabs.grafana
+
+parameters:
+  description: Grafana example with Kapitan
