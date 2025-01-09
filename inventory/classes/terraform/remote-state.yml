@@ -1,0 +1,7 @@
+---
+parameters:
+  terraform:
+    gen_backend:
+      gcs:
+        bucket: ${state_bucket_name}
+        prefix: terraform/state/${target}

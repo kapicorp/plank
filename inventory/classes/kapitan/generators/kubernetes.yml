@@ -1,0 +1,73 @@
+parameters:
+  kapitan:
+    dependencies:
+    - type: git
+      source: https://github.com/kapicorp/generators.git
+      ref: main
+      subdir: kubernetes
+      output_path: system/generators/kubernetes
+    compile:
+    - output_path: manifests
+      input_type: kadet
+      output_type: yml
+      input_paths:
+        - system/generators/kubernetes
+      input_params:
+        mutations:
+          bundle:
+            - conditions:
+                kind: [Ingress]
+              filename: '{content.component_name}-ingress'
+            - conditions:
+                kind: [Namespace]
+              filename: '{content.component_name}-namespace'
+            - conditions:
+                kind: [Secret]
+              filename: '{content.component_name}-secret'
+            - conditions:
+                kind: [ConfigMap]
+              filename: '{content.component_name}-config'
+            - conditions:
+                kind: [Service]
+              filename: '{content.component_name}-service'
+            - conditions:
+                kind: [ServiceAccount, ClusterRole, ClusterRoleBinding, Role, RoleBinding]
+              filename: '{content.component_name}-rbac'
+            - conditions:
+                kind: [NetworkPolicy]
+              filename: '{content.component_name}-security'
+            - conditions:
+                kind: [ManagedCertificate]
+              filename: 'gke-managed-certificate-managed-certificate'
+            - conditions:
+                kind: [HorizontalPodAutoscaler, PodDisruptionBudget, VerticalPodAutoscaler]
+              filename: '{content.component_name}-scaling'
+            - conditions:
+                # CRDs need to be setup separately
+                kind: [CustomResourceDefinition]
+              filename: '{content.component_name}-crds'
+            - conditions:
+                kind: ["*"]
+              filename: '{content.component_name}-bundle'
+          patch:
+            - conditions:
+                kind: [CustomResourceDefinition]
+              patch:
+                metadata:
+                  annotations:
+                    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,Replace=true
+
+
+  generators:
+    kubernetes:
+      namespace:
+        name:
+          name: ${namespace}
+    manifest:
+      default_config:
+        namespace: ${namespace}
+        type: deployment
+        service_account:
+          create: false
+        annotations:
+          "manifests.kapicorp.com/generated": "true"

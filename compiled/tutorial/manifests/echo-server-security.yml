@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations: {}
+  labels:
+    app.kapicorp.dev/component: echo-server
+    name: echo-server
+  name: echo-server
+  namespace: echo-server
+spec:
+  egress:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: frontend
+      ports:
+        - port: 6379
+          protocol: TCP
+  podSelector:
+    matchLabels:
+      name: echo-server
+  policyTypes:
+    - Ingress

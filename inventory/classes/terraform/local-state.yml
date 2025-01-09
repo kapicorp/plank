@@ -1,0 +1,6 @@
+---
+parameters:
+  terraform:
+    gen_backend:
+      local:
+        path: ../../../state/terraform.tfstate

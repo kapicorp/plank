@@ -1,0 +1,128 @@
+parameters:
+  components:
+
+    # configures the manifest generator
+    echo-server:
+      # Application from which to source defaults
+      application: microservices
+
+      # Basic settings
+      image: jmalloc/echo-server
+      pull_policy: Always
+
+      init_containers:
+        busybox:
+          image: busybox
+          command:
+            - /bin/touch
+            - /initialised
+
+      env:
+        NODENAME:
+          fieldRef:
+            fieldPath: spec.nodeName
+
+      # Resource constraints
+      resources:
+        requests:
+          memory: 1G
+        limits:
+          memory: 1G
+
+      # Networking
+      service:
+        type: LoadBalancer
+      ports:
+        http:
+          container_port: 8080
+        internal:
+          container_port: 8081
+
+      # One or many network policies
+      network_policies:
+        default:
+          ingress:
+            - from:
+              - podSelector:
+                  matchLabels:
+                    role: frontend
+              ports:
+              - protocol: TCP
+                port: 6379
+
+      # Additional containers
+      additional_containers:
+        nginx:
+          image: nginx
+          ports:
+            nginx:
+              service_port: 80
+          config_maps:
+            config:
+              mount: /etc/nginx/conf.d/nginx.conf
+              subPath: nginx.conf
+
+      # Healthchecks definitions
+      healthcheck:
+        liveness:
+          type: HTTP
+          port: http
+          httpHeaders:
+          - name: Host
+            value: www.google.com
+          path: /_health
+          timeout_seconds: 3
+        readiness:
+          type: HTTP
+          port: http
+          path: /_ready
+          timeout_seconds: 5
+
+      # Configs and Secrets definitions
+      secrets:
+        secret:
+          data:
+            encoded_secret:
+              value: my_secret
+              b64_encode: true
+            better_secret:
+              value: ?{base64:targets/${target_name}/password||random:str|base64}
+
+      config_maps:
+        config:
+          mount: /opt/echo-service/echo-service.conf
+          subPath: echo-service.conf
+          default_mode: 0550
+          versioned: true
+          data:
+            echo-service.conf:
+              template: "system/sources/templates/echo-server/echo-server.conf.j2"
+              values:
+                example: true
+            nginx.conf:
+              value: |
+                server {
+                   listen       80;
+                   server_name  localhost;
+                   location / {
+                       proxy_pass  http://localhost:8080/;
+                   }
+                   error_page   500 502 503 504  /50x.html;
+                   location = /50x.html {
+                       root   /usr/share/nginx/html;
+                   }
+                }
+            simple_config:
+              value: "not mounted"
+
+  # configures the ingress generator
+  ingresses:
+    global:
+      paths:
+        - backend:
+            service:
+              name: echo-server
+              port:
+                number: 80
+          path: /echo/*
+          pathType: Prefix

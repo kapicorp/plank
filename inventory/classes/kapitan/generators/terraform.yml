@@ -1,0 +1,19 @@
+parameters:
+  kapitan:
+    dependencies:
+    - type: git
+      source: https://github.com/kapicorp/generators.git
+      ref: main
+      subdir: terraform
+      output_path: system/generators/terraform
+    compile:
+    - output_path: terraform
+      input_type: kadet
+      output_type: json
+      input_paths:
+        - system/generators/terraform
+    - input_type: copy
+      ignore_missing: true
+      input_paths:
+        - resources/state/${target_name}/.terraform.lock.hcl
+      output_path: terraform/

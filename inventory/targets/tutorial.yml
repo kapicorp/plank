@@ -1,0 +1,8 @@
+classes:
+  - common
+  - components.echo-server
+  - projects.localhost.kubernetes.kind
+
+
+parameters:
+  target_name: echo-server

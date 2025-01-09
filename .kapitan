@@ -1,0 +1,19 @@
+# This file contains default settings for Kapitan
+
+# Use version to fix a specific kapitan version
+# version: 0.34.4
+compile:
+  prune: true
+  embed-refs: true
+  fetch: true
+  yaml-dump-null-as-empty: true
+  compose-node-name: true
+  refs-path: ./system/refs
+  jinja2-filters: ./system/templates/jinja2_filters.py
+  search-paths:
+    - .
+    - ./system/
+    - ./system/lib
+    - ./system/generators
+refs:
+  refs-path: ./system/refs

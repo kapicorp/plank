@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    manifests.kapicorp.com/generated: 'true'
+  labels:
+    app.kapicorp.dev/component: echo-server
+    name: echo-server
+  name: echo-server
+  namespace: echo-server
+spec:
+  minReadySeconds:
+  progressDeadlineSeconds:
+  replicas: 1
+  revisionHistoryLimit:
+  selector:
+    matchLabels:
+      name: echo-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        name: echo-server
+    spec:
+      affinity: {}
+      containers:
+        - args: []
+          command: []
+          env:
+            - name: NODENAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          image: jmalloc/echo-server
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: www.google.com
+              path: /_health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: echo-server
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8081
+              name: internal
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              httpHeaders:
+              path: /_ready
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              memory: 1G
+            requests:
+              memory: 1G
+          securityContext: {}
+          startupProbe:
+          volumeMounts:
+            - mountPath: /opt/echo-service/echo-service.conf
+              name: config
+              readOnly:
+              subPath: echo-service.conf
+        - args: []
+          command: []
+          image: nginx
+          imagePullPolicy: IfNotPresent
+          name: nginx
+          ports:
+            - containerPort: 80
+              name: nginx
+              protocol: TCP
+          resources: {}
+          securityContext: {}
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/nginx.conf
+              name: config
+              readOnly:
+              subPath: nginx.conf
+      dnsPolicy:
+      hostNetwork:
+      hostPID:
+      imagePullSecrets: []
+      initContainers:
+        - args: []
+          command:
+            - /bin/touch
+            - /initialised
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          name: busybox
+          resources: {}
+          securityContext: {}
+      nodeSelector: {}
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations: []
+      volumes:
+        - configMap:
+            defaultMode: 360
+            items: []
+            name: echo-server-88d0d989
+          name: config
+        - name: secret
+          secret:
+            defaultMode: 420
+            items: []
+            secretName: echo-server
